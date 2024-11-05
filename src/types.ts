@@ -26,7 +26,8 @@ type StringKeys<T> = {
 type inferEntityFromMongoRepoOptions<O> = O extends CollectionOption<infer E> ? E : never
 
 type Base = {
-    db: Db
+    db: Db,
+    init: () => Promise<void>
 }
 
 export type MongoDatabase<Collections extends { [K in string]: CollectionOption<any> }> = Base & {

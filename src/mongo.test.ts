@@ -1,6 +1,6 @@
-import { describe, expect, it, beforeAll, afterAll } from 'vitest';
+import {describe, expect, it, beforeAll, afterAll} from 'vitest';
 
-import { mongodb, collection } from './mongo';
+import {mongodb, collection} from './mongo';
 import {mapWhereOptionToMongoFilter} from "./filters/filter-helpers";
 
 type User = {
@@ -17,16 +17,16 @@ type Order = {
     orderedAt: Date;
 };
 
-describe('MongoDB Library',async () => {
-    const mongo= await mongodb({
+describe('MongoDB Library', async () => {
+    const mongo = mongodb({
         url: "mongodb://localhost:27017/lib-test",
         collections: {
             user: collection<User>({
                 name: 'user',
                 objectIdKeys: ['accountId'],
                 indexes: [
-                    { key: 'name', type: 'text' },
-                    { key: 'accountId', type: 1, option: { unique: true } },
+                    {key: 'name', type: 'text'},
+                    {key: 'accountId', type: 1, option: {unique: true}},
                 ],
             }),
             orders: collection<Order>({
@@ -35,6 +35,8 @@ describe('MongoDB Library',async () => {
             }),
         },
     })
+
+    await mongo.init()
 
     it('should create all collections', async () => {
         const collections = await mongo.db.collections();
@@ -69,7 +71,7 @@ describe('MongoDB Library',async () => {
 
             const users = await mongo.user.find({
                 where: {
-                    name: { eq: 'Jane Smith' },
+                    name: {eq: 'Jane Smith'},
                 },
             });
 
@@ -79,7 +81,7 @@ describe('MongoDB Library',async () => {
 
         it('should update a user', async () => {
             const userId = 'user-id-1';
-            await mongo.user.updateById(userId, { age: 31 });
+            await mongo.user.updateById(userId, {age: 31});
 
             const updatedUser = await mongo.user.findById(userId);
             expect(updatedUser?.age).toBe(31);
@@ -100,7 +102,7 @@ describe('MongoDB Library',async () => {
         });
 
         it('should check existence of a user', async () => {
-            const exists = await mongo.user.exists({ id: 'user-id-1' });
+            const exists = await mongo.user.exists({id: 'user-id-1'});
             expect(exists).toBe(true);
         });
     });
@@ -122,10 +124,10 @@ describe('MongoDB Library',async () => {
                 },
             ];
 
-            await mongo.orders.insertMany(orders, { ordered: true });
+            await mongo.orders.insertMany(orders, {ordered: true});
 
             const fetchedOrders = await mongo.orders.find({
-                where: { userId: { eq: 'user-id-1' } },
+                where: {userId: {eq: 'user-id-1'}},
             });
 
             expect(fetchedOrders.length).toBe(2);
@@ -133,12 +135,12 @@ describe('MongoDB Library',async () => {
 
         it('should update orders', async () => {
             await mongo.orders.updateMany(
-                { status: { eq: 'pending' } },
-                { status: 'completed' }
+                {status: {eq: 'pending'}},
+                {status: 'completed'}
             );
 
             const orders = await mongo.orders.find({
-                where: { status: { eq: 'completed' } },
+                where: {status: {eq: 'completed'}},
             });
 
             expect(orders.length).toBe(1);
@@ -147,13 +149,13 @@ describe('MongoDB Library',async () => {
 
         it('should aggregate orders', async () => {
             const result = await mongo.orders.aggregate([
-                { $match: { userId: 'user-id-1' } },
-                { $group: { _id: '$status', count: { $sum: 1 } } },
+                {$match: {userId: 'user-id-1'}},
+                {$group: {_id: '$status', count: {$sum: 1}}},
             ]);
 
             expect(result).toEqual([
-                { _id: 'completed', count: 1 },
-                { _id: 'shipped', count: 1 },
+                {_id: 'completed', count: 1},
+                {_id: 'shipped', count: 1},
             ]);
         });
     });
@@ -161,19 +163,19 @@ describe('MongoDB Library',async () => {
     describe('Filter Helpers', () => {
         it('should correctly map filters', () => {
             const where = {
-                name: { regex: '^John', flags: 'i' },
-                age: { gt: 20, lt: 40 },
+                name: {regex: '^John', flags: 'i'},
+                age: {gt: 20, lt: 40},
             };
 
             const filter = mapWhereOptionToMongoFilter(where, []);
             expect(filter).toEqual({
-                name: { $regex: /^John/i },
-                age: { $gt: 20, $lt: 40 },
+                name: {$regex: /^John/i},
+                age: {$gt: 20, $lt: 40},
             });
         });
     });
 
-    afterAll(()=>{
+    afterAll(() => {
         mongo.db.dropDatabase()
     })
 });

@@ -4,7 +4,7 @@ import {mongoRepoImplFn} from "./repo/mongo-repo-impl";
 
 export const collection = <E extends Entity>(option: CollectionOption<E>) => option
 
-export async function mongodb<
+export function mongodb<
     Collections extends { [K in string]: CollectionOption<any> }
 >(
     options: {
@@ -12,20 +12,23 @@ export async function mongodb<
         clientOptions?: MongoClientOptions,
         collections: Collections
     }
-): Promise<MongoDatabase<Collections>> {
+): MongoDatabase<Collections> {
     const client = new MongoClient(options.url, options.clientOptions)
-    await client.connect()
-
     const db = client.db()
 
-    for (let collectionsKey in options.collections) {
-        const option = options.collections[collectionsKey]
-        const collection = await db.createCollection(option.name, option.createOption)
-        await Promise.all((option.indexes ?? []).map(index => collection.createIndex({[index.key]: index.type}, index.option)))
+    async function init() {
+        await client.connect()
+        for (let collectionsKey in options.collections) {
+            const option = options.collections[collectionsKey]
+            const collection = await db.createCollection(option.name, option.createOption)
+            await Promise.all((option.indexes ?? []).map(index => collection.createIndex({[index.key]: index.type}, index.option)))
+        }
     }
 
+
     const repos: any = {
-        db
+        db,
+        init,
     }
 
     const fn = mongoRepoImplFn(db)

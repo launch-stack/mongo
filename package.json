@@ -1,6 +1,6 @@
 {
   "name": "@launchstack/mongo",
-  "version": "0.0.1-alpha.1",
+  "version": "0.0.1-alpha.2",
   "description": "A typesafe MongoDB library by LaunchStack, providing a fully typesafe and lightweight wrapper over the official MongoDB driver, with simplified CRUD operations and customizable collection definitions.",
   "type": "module",
   "main": "dist/index.cjs",

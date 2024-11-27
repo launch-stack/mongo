@@ -29,6 +29,7 @@ export function mongodb<
     const repos: any = {
         db,
         init,
+        client,
     }
 
     const fn = mongoRepoImplFn(db)

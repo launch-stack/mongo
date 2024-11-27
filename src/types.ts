@@ -1,4 +1,4 @@
-import {CreateCollectionOptions, CreateIndexesOptions, Db, Document} from "mongodb";
+import {CreateCollectionOptions, CreateIndexesOptions, Db, Document, MongoClient} from "mongodb";
 import {Identifiable, MongoRepository} from "./repo/mongo-repository";
 
 export type Entity = Identifiable
@@ -27,6 +27,7 @@ type inferEntityFromMongoRepoOptions<O> = O extends CollectionOption<infer E> ? 
 
 type Base = {
     db: Db,
+    client: MongoClient,
     init: () => Promise<void>
 }
 

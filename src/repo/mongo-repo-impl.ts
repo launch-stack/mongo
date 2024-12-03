@@ -9,7 +9,7 @@ export function mongoRepoImplFn(db: Db) {
     return function <E extends Entity>(options: CollectionOption<E>): MongoRepository<E> {
         const collection = db.collection(options.name)
         const objectIdKeys = (options.objectIdKeys ?? []) as string[]
-        const toDocument = (entity: E): Document => {
+        const toDocument = (entity: any): Document => {
             const result: Document = {}
 
             for (let key in entity) {
@@ -73,18 +73,18 @@ export function mongoRepoImplFn(db: Db) {
             async updateById(id: string, update: PartialEntity<E>) {
                 await collection.updateOne(
                     {_id: ObjectIdUtils.fromStringSafe(id) as any},
-                    {$set: update},
+                    {$set: toDocument(update)},
                 )
             },
             async updateOneBy(where: WhereOptions<E>, update: PartialEntity<E>) {
                 await collection.updateOne(
                     mapWhere(where),
-                    {$set: update},
+                    {$set: toDocument(update)},
                 )
             },
             async updateMany(where: WhereOptions<E>, update: PartialEntity<E>) {
                 return collection
-                    .updateMany(mapWhere(where), {$set: update})
+                    .updateMany(mapWhere(where), {$set: toDocument(update)})
                     .then(it => ({matched: it.matchedCount, modified: it.modifiedCount}))
             },
 

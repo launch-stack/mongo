@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.0.1-alpha.4](https://github.com/launch-stack/data/compare/v0.0.1-alpha.3...v0.0.1-alpha.4) (2024-12-03)
+
+
+### Bug Fixes
+
+* updating document not storing objectId field as objectId ([467302e](https://github.com/launch-stack/data/commit/467302e6f726e0ddf477e1905408d44ba39bfc58))
+
 ### [0.0.1-alpha.3](https://github.com/launch-stack/data/compare/v0.0.1-alpha.1...v0.0.1-alpha.3) (2024-11-27)
 
 

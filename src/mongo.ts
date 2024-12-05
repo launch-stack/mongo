@@ -1,17 +1,16 @@
 import {Entity, MongoDatabase, UnnamedCollectionOption} from "./types";
 import {MongoClient, MongoClientOptions} from "mongodb";
 import {mongoRepoImplFn} from "./repo/mongo-repo-impl";
-import {Identifiable} from "./repo/mongo-repository";
 
-export const collection = <E extends Entity>(option: UnnamedCollectionOption<E> & { name?: string }) => option
+export const collection = <E extends Entity>(option: UnnamedCollectionOption<E> & { name?: string } = {}) => option
 
-export function mongodb<I extends Identifiable>(
+export function mongodb<C extends { [K in string]: UnnamedCollectionOption<any> & { name?: string } }>(
     options: {
         url: string,
         clientOptions?: MongoClientOptions,
-        collections: { [K in string]: UnnamedCollectionOption<I> & { name?: string } }
+        collections: C
     }
-): MongoDatabase<typeof options.collections> {
+): MongoDatabase<C> {
     const client = new MongoClient(options.url, options.clientOptions)
     const db = client.db()
 
@@ -25,21 +24,22 @@ export function mongodb<I extends Identifiable>(
     }
 
 
-    const repos: any = {
-        db,
-        init,
-        client,
-    }
+    const cols: any = {}
 
     const fn = mongoRepoImplFn(db)
 
     for (let collectionsKey in options.collections) {
         const option = options.collections[collectionsKey]
-        repos[collectionsKey] = fn({
+        cols[collectionsKey] = fn({
             ...option,
             name: option.name ?? collectionsKey
         })
     }
 
-    return repos
+    return {
+        db,
+        client,
+        init,
+        ...cols,
+    }
 }

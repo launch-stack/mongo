@@ -11,8 +11,12 @@ export type PartialEntity<E extends Entity> = {
 type IndexType = 1 | -1 | 'text' | '2d'
 
 
+type NonIdStringKeys<T> = {
+    [K in keyof T]: K extends 'id' ? never : T[K] extends string ? K : never;
+}[keyof T]
+
 export type UnnamedCollectionOption<E extends Entity> = {
-    objectIdKeys?: StringKeys<Omit<E, 'id'>>[],
+    objectIdKeys?: NonIdStringKeys<E>[],
     createOption?: CreateCollectionOptions,
     documentToEntityMapper?: (document: Document) => E,
     indexes?: { key: keyof E, type: IndexType, option?: CreateIndexesOptions }[]
@@ -20,12 +24,6 @@ export type UnnamedCollectionOption<E extends Entity> = {
 export type CollectionOption<E extends Entity> = UnnamedCollectionOption<E> & {
     name: string,
 }
-
-
-type StringKeys<T> = {
-    [K in keyof T]: T[K] extends string ? K : never;
-}[keyof T];
-
 
 type inferEntityFromMongoRepoOptions<O> = O extends UnnamedCollectionOption<infer E> ? E : never
 

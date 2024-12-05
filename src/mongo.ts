@@ -1,9 +1,9 @@
-import {CollectionOption, Entity, MongoDatabase, UnnamedCollectionOption} from "./types";
+import {Entity, MongoDatabase, UnnamedCollectionOption} from "./types";
 import {MongoClient, MongoClientOptions} from "mongodb";
 import {mongoRepoImplFn} from "./repo/mongo-repo-impl";
 import {Identifiable} from "./repo/mongo-repository";
 
-export const collection = <E extends Entity>(option: CollectionOption<E>) => option
+export const collection = <E extends Entity>(option: UnnamedCollectionOption<E> & { name?: string }) => option
 
 export function mongodb<I extends Identifiable>(
     options: {

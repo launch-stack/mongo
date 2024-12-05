@@ -4,17 +4,21 @@ import {Identifiable, MongoRepository} from "./repo/mongo-repository";
 export type Entity = Identifiable
 
 
-export type PartialEntity<E extends Entity> = Partial<Omit<E, 'id'>>
+export type PartialEntity<E extends Entity> = {
+    [K in keyof E]?: K extends 'id' ? never : E[K]
+}
 
 type IndexType = 1 | -1 | 'text' | '2d'
 
 
-export type CollectionOption<E extends Entity> = {
-    name: string,
+export type UnnamedCollectionOption<E extends Entity> = {
     objectIdKeys?: StringKeys<Omit<E, 'id'>>[],
     createOption?: CreateCollectionOptions,
     documentToEntityMapper?: (document: Document) => E,
     indexes?: { key: keyof E, type: IndexType, option?: CreateIndexesOptions }[]
+}
+export type CollectionOption<E extends Entity> = UnnamedCollectionOption<E> & {
+    name: string,
 }
 
 
@@ -23,7 +27,7 @@ type StringKeys<T> = {
 }[keyof T];
 
 
-type inferEntityFromMongoRepoOptions<O> = O extends CollectionOption<infer E> ? E : never
+type inferEntityFromMongoRepoOptions<O> = O extends UnnamedCollectionOption<infer E> ? E : never
 
 type Base = {
     db: Db,
@@ -31,7 +35,7 @@ type Base = {
     init: () => Promise<void>
 }
 
-export type MongoDatabase<Collections extends { [K in string]: CollectionOption<any> }> = Base & {
+export type MongoDatabase<Collections extends { [K in string]: UnnamedCollectionOption<any> }> = Base & {
     [K in keyof Collections]: MongoRepository<inferEntityFromMongoRepoOptions<Collections[K]>>
 }
 

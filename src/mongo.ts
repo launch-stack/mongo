@@ -1,18 +1,17 @@
-import {CollectionOption, Entity, MongoDatabase} from "./types";
+import {CollectionOption, Entity, MongoDatabase, UnnamedCollectionOption} from "./types";
 import {MongoClient, MongoClientOptions} from "mongodb";
 import {mongoRepoImplFn} from "./repo/mongo-repo-impl";
+import {Identifiable} from "./repo/mongo-repository";
 
 export const collection = <E extends Entity>(option: CollectionOption<E>) => option
 
-export function mongodb<
-    Collections extends { [K in string]: CollectionOption<any> }
->(
+export function mongodb<I extends Identifiable>(
     options: {
         url: string,
         clientOptions?: MongoClientOptions,
-        collections: Collections
+        collections: { [K in string]: UnnamedCollectionOption<I> & { name?: string } }
     }
-): MongoDatabase<Collections> {
+): MongoDatabase<typeof options.collections> {
     const client = new MongoClient(options.url, options.clientOptions)
     const db = client.db()
 
@@ -20,7 +19,7 @@ export function mongodb<
         await client.connect()
         for (let collectionsKey in options.collections) {
             const option = options.collections[collectionsKey]
-            const collection = await db.createCollection(option.name, option.createOption)
+            const collection = await db.createCollection(option.name ?? collectionsKey, option.createOption)
             await Promise.all((option.indexes ?? []).map(index => collection.createIndex({[index.key]: index.type}, index.option)))
         }
     }
@@ -36,7 +35,10 @@ export function mongodb<
 
     for (let collectionsKey in options.collections) {
         const option = options.collections[collectionsKey]
-        repos[collectionsKey] = fn(option)
+        repos[collectionsKey] = fn({
+            ...option,
+            name: option.name ?? collectionsKey
+        })
     }
 
     return repos
